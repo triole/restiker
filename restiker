@@ -1,0 +1,94 @@
+#!/bin/bash
+IFS=$'\n'
+selfdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export SELFDIR="${selfdir}"
+
+conf="${1}"
+
+display_help() {
+    echo -e "\nrestiker help"
+    echo -e "\n  args"
+    echo "    -i/--ignore   ignore if files do not exist"
+    echo "    -d/--debug    do nothing, just print what would have happened"
+    echo "    -h/--help     display this help"
+    echo -e "\n  usage"
+    echo "    restiker examples/conf.toml"
+    echo ""
+    exit 0
+}
+
+gk() {
+    dasel -f "${conf}" -r toml "${*}" | envsubst
+}
+
+printerr() {
+    echo -e "\n\033[0;31m[error]\033[0m ${*}\n"
+    exit 1
+}
+
+rcmd() {
+    cmd=${@}
+    echo -e "${cmd}"
+    if [[ "${debug}" == "false" ]]; then
+        eval ${cmd}
+    fi
+}
+
+checkfilevar() {
+    if [[ "${ignore}" == "false" ]]; then
+        if [[ -z "${1}" || ! -f "${1}" ]]; then
+            printerr "file does not seem to exist: ${1}"
+        fi
+    fi
+}
+
+# --- main
+# parse args
+pargs=()
+debug="false"
+ignore="false"
+for val in "$@"; do
+    if [[ "${val}" =~ ^-+(d|debug)$ ]]; then
+        ignore="true"
+    fi
+    if [[ "${val}" =~ ^-+(d|debug)$ ]]; then
+        debug="true"
+    fi
+    if [[ "${val}" =~ ^-+(h|help)$ ]]; then
+        display_help
+    fi
+    if [[ ! "${val}" =~ ^- ]]; then
+        pargs+=("${val}")
+    fi
+done
+
+conf="${pargs[0]}"
+
+# last checks
+if [[ -z "$(which dasel)" ]]; then
+    printerr "restiker requires dasel"
+fi
+
+checkfilevar "${conf}"
+
+# read cert
+certfile="$(gk "cert")"
+checkfilevar "${certfile}"
+if [[ -n "${certfile}" ]]; then
+    cert="--cacert ${certfile}"
+fi
+
+# assemble_backup_folders
+f2bkp=""
+for el in $(gk "folders_to_backup.all().join(^)" | sed 's|\^|\n|g'); do
+    f2bkp+="\"${el}\" "
+done
+
+# assemble additional args
+additional_args=""
+for el in $(gk "additional_args.all()"); do
+    additional_args+="${el} "
+done
+
+# launch backup
+rcmd restic ${cert} ${additional_args}-r "$(gk "repo")" backup ${f2bkp}

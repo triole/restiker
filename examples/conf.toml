@@ -1,0 +1,17 @@
+repo = "rest:https://user:pass@your.restic/repo"
+
+# if cert is not given, restiker will omit the argument
+# cert = "/home/myuser/restiker.crt"
+cert = "/home/myuser/restiker/conf.toml"
+
+folders_to_backup = [
+    "/etc",
+    "/home/myuser",
+    "/home/my documents",
+    "/home/even more documents"
+]
+
+# can be empty
+additional_args=[
+    "-vv"
+]
