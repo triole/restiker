@@ -38,7 +38,7 @@ additional_args=[
 ]
 ```
 
-If you run a backup with the config file example above a command like this will be launched...
+Running a backup with the config file example above, a command like the following will be launched...
 
 ```go mdox-exec="./restiker examples/conf.toml -d -i"
 restic --cacert /home/myuser/restiker/conf.toml -vv -r rest:https://user:pass@your.restic/repo backup "/etc" "/home/myuser" "/home/my documents" "/home/even more documents" 
@@ -57,5 +57,6 @@ restiker help
 
   usage
     restiker examples/conf.toml
+    restiker examples/conf.toml -d
 
 ```

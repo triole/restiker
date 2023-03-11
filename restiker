@@ -13,6 +13,7 @@ display_help() {
     echo "    -h/--help     display this help"
     echo -e "\n  usage"
     echo "    restiker examples/conf.toml"
+    echo "    restiker examples/conf.toml -d"
     echo ""
     exit 0
 }
